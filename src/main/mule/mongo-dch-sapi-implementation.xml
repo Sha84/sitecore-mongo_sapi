@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd">
+	
+	<mongo:config name="MongoDB_Config" doc:name="MongoDB Config" doc:id="d25028bc-f0ef-43f7-ba40-3e6508631a7c" >
+		<mongo:connection-string-connection connectionString="mongodb+srv://shani_test:test@cluster0.mrlqt.mongodb.net/sitecore_dch?retryWrites=true&amp;w=majority"/>
+	</mongo:config>
+	<flow name="mongo-dch-postNew" doc:id="36c93e93-937b-4acd-b205-5b490a4db24e" >
+		<ee:transform doc:name="Transform Message" doc:id="bbdac92b-2093-461d-92ea-4af787dda7a1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+			</ee:variables>
+		</ee:transform>
+		<mongo:insert-document doc:name="Insert document" doc:id="22c29fd3-59f7-4fff-aa28-91c4ed3dfbd7" config-ref="MongoDB_Config" collectionName="searchresponse" />
+		<ee:transform doc:name="Transform Message" doc:id="21fa175f-b51a-4545-bc65-f5fbffe0f6f6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="mongo-dch-get-particular-asset" doc:id="52e45f99-f758-4cb9-83a7-5689406577fc" >
+		<ee:transform doc:name="Transform Message" doc:id="da699283-0be3-4496-90ed-b99ddb51aec0" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="aID" ><![CDATA[%dw 2.0
+output application/json
+---
+attributes.uriParams.mAssetId 
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="d1d0b45e-068d-4199-ac52-c66506eedae5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	
+"massetId": vars.aID as Number
+
+
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+			</ee:variables>
+		</ee:transform>
+		<mongo:find-documents doc:name="Find documents" doc:id="de2e6b85-394a-401e-94b1-54734955eabd" config-ref="MongoDB_Config" collectionName="searchresponse" fields=",">
+			<mongo:query ><![CDATA[#[{"assetId": payload.massetId}]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="8c4fc5be-574c-49cb-851b-3eec7fb977ff" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+ payload
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="mongo-dch-health" doc:id="cc3a2717-de26-45f2-be67-c61cd2e37451" >
+		<ee:transform doc:name="Transform Message" doc:id="962aa684-16d7-4679-8090-96eeaffa9437" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+  application_name: "Sitecore Integration Project",
+  application_version: "1.0.0",
+  api_name: "mongo-sapi",
+  environment: "Sandbox",
+  status: "running"
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="mongo-dch-delete-particular-asset" doc:id="59be6013-9df3-4585-a283-2d123f9d1ddb" >
+		<ee:transform doc:name="Transform Message" doc:id="9dfd80d0-18af-4623-98af-7ee890aa6bc7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{	
+"massetId": attributes.uriParams.mAssetId as Number
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<mongo:remove-documents collectionName="new_asset" doc:name="Remove documents" doc:id="09bb3a11-f004-478b-9ae6-18b8203b299a" config-ref="MongoDB_Config">
+			<mongo:query ><![CDATA[#[{"assetId": payload.massetId}]]]></mongo:query>
+		</mongo:remove-documents>
+		<ee:transform doc:name="Transform Message" doc:id="7ed04e33-c815-4467-b181-1365f5ace850" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="mongo-dch-update-particular-asset" doc:id="d8d712d7-461b-4e79-ae60-930f4c0f6c3d" >
+		<ee:transform doc:name="Transform Message" doc:id="25bb5106-288a-4bf7-b0db-473eced22dad" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="mongoAsset" ><![CDATA[%dw 2.0
+output application/json
+---
+
+ attributes.uriParams.mAssetId as Number
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<mongo:update-documents doc:name="Update documents" doc:id="298ad00c-0d2a-4922-a73b-7de1d04bcfee" config-ref="MongoDB_Config" collectionName="searchresponse">
+			<mongo:query ><![CDATA[#[{"assetId": vars.mongoAsset}]]]></mongo:query>
+		</mongo:update-documents>
+		<ee:transform doc:name="Transform Message" doc:id="5829206c-c233-41bc-bb44-0157b3eb5385" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
