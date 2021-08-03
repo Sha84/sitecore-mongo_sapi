@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
-http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd">
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
 	
 	<mongo:config name="MongoDB_Config" doc:name="MongoDB Config" doc:id="d25028bc-f0ef-43f7-ba40-3e6508631a7c" >
 		<mongo:connection-string-connection connectionString="mongodb+srv://shani_test:test@cluster0.mrlqt.mongodb.net/sitecore_dch?retryWrites=true&amp;w=majority"/>
@@ -29,6 +30,20 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="be7dd37c-b3bf-4857-90ca-e2783125fa52" type="MONGO:CONNECTIVITY, MONGO:CONSISTENCY_ERROR, MONGO:DUPLICATE_ERROR, MONGO:TIMEOUT">
+				<ee:transform doc:name="Transform Message" doc:id="847232b6-026d-4d3d-ba9b-0a31d0d43401" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
 	</flow>
 	<flow name="mongo-dch-get-particular-asset" doc:id="52e45f99-f758-4cb9-83a7-5689406577fc" >
 		<ee:transform doc:name="Transform Message" doc:id="da699283-0be3-4496-90ed-b99ddb51aec0" >
@@ -69,6 +84,20 @@ output application/json
 ]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="37d96edd-99bd-4a40-aacb-24d5a45e9293" type="MONGO:CONNECTIVITY, MONGO:CONSISTENCY_ERROR, MONGO:DUPLICATE_ERROR, MONGO:INVALID_INPUT, MONGO:NOT_FOUND">
+				<ee:transform doc:name="Transform Message" doc:id="6bbf3297-1aaf-471c-bd9a-6aea020bfe60" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
 	</flow>
 	<flow name="mongo-dch-health" doc:id="cc3a2717-de26-45f2-be67-c61cd2e37451" >
 		<ee:transform doc:name="Transform Message" doc:id="962aa684-16d7-4679-8090-96eeaffa9437" >
@@ -91,16 +120,18 @@ output application/json
 	<flow name="mongo-dch-delete-particular-asset" doc:id="59be6013-9df3-4585-a283-2d123f9d1ddb" >
 		<ee:transform doc:name="Transform Message" doc:id="9dfd80d0-18af-4623-98af-7ee890aa6bc7" >
 			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="deleteMongoAsset" ><![CDATA[%dw 2.0
 output application/json
 ---
-{	
-"massetId": attributes.uriParams.mAssetId as Number
-}]]></ee:set-payload>
-			</ee:message>
+	
+ attributes.uriParams.mAssetId as Number
+]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
-		<mongo:remove-documents collectionName="new_asset" doc:name="Remove documents" doc:id="09bb3a11-f004-478b-9ae6-18b8203b299a" config-ref="MongoDB_Config">
-			<mongo:query ><![CDATA[#[{"assetId": payload.massetId}]]]></mongo:query>
+		<mongo:remove-documents collectionName="searchresponse" doc:name="Remove documents" doc:id="09bb3a11-f004-478b-9ae6-18b8203b299a" config-ref="MongoDB_Config">
+			<mongo:query ><![CDATA[#[{"assetId": vars.deleteMongoAsset}]]]></mongo:query>
 		</mongo:remove-documents>
 		<ee:transform doc:name="Transform Message" doc:id="7ed04e33-c815-4467-b181-1365f5ace850" >
 			<ee:message >
@@ -110,6 +141,20 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="17e3266a-75e0-457f-a968-61edaaae4ac6" >
+				<ee:transform doc:name="Transform Message" doc:id="d526983b-a8bc-4ec5-b430-b5c75c6886ba" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
 	</flow>
 	<flow name="mongo-dch-update-particular-asset" doc:id="d8d712d7-461b-4e79-ae60-930f4c0f6c3d" >
 		<ee:transform doc:name="Transform Message" doc:id="25bb5106-288a-4bf7-b0db-473eced22dad" >
@@ -128,6 +173,49 @@ output application/json
 			<mongo:query ><![CDATA[#[{"assetId": vars.mongoAsset}]]]></mongo:query>
 		</mongo:update-documents>
 		<ee:transform doc:name="Transform Message" doc:id="5829206c-c233-41bc-bb44-0157b3eb5385" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="a0c2c9d2-1f4b-47a3-a399-26be2efd8fe7" type="MONGO:CONNECTIVITY, MONGO:CONSISTENCY_ERROR, MONGO:DUPLICATE_ERROR, MONGO:INVALID_INPUT">
+				<ee:transform doc:name="Transform Message" doc:id="168571b8-973d-4ec5-a61b-aa7ce3de55fc" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="findExpiredAssetsFlow" doc:id="708939b0-4857-42d7-ab4d-32fc30b3c576" >
+		<ee:transform doc:name="Transform Message" doc:id="33385dfe-e357-4b9b-8016-7eaa578291d4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"toCompareDate" : now()
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="exp" ><![CDATA[%dw 2.0
+output application/json
+---
+"expirationTime"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<mongo:find-documents collectionName="searchresponse" fields="," doc:name="Find documents" doc:id="c65fcb88-f715-4fdd-9686-9ac4c7cbb2ec" config-ref="MongoDB_Config" >
+			<mongo:query ><![CDATA[#[{"expirationTime" :{"\$gte": payload.toCompareDate}}]]]></mongo:query>
+		</mongo:find-documents>
+		<ee:transform doc:name="Transform Message" doc:id="e62fc5a3-9f92-4ce5-9b4e-d28902edb15b" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json

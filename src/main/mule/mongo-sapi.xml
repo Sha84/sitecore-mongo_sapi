@@ -3,7 +3,7 @@
     <http:listener-config name="mongo-sapi-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
-    <apikit:config name="mongo-sapi-config" api="resource::600a1e2b-9eca-403f-b97d-1178aa13d11a:mongo-sapi:1.0.2:raml:zip:mongo-sapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <apikit:config name="mongo-sapi-config" api="resource::600a1e2b-9eca-403f-b97d-1178aa13d11a:mongo-sapi:1.0.5:raml:zip:mongo-sapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <flow name="mongo-sapi-main">
         <http:listener config-ref="mongo-sapi-httpListenerConfig" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
@@ -136,6 +136,9 @@ output application/json
         <flow-ref doc:name="Flow Reference" doc:id="7c5908fc-843f-47d4-a7a8-cc3423426e7f" name="mongo-dch-postNew" />
     </flow>
     <flow name="patch:\mAssets\(mAssetId):application\json:mongo-sapi-config">
-		<flow-ref doc:name="Flow Reference" doc:id="9897d1b2-0ed1-4d19-9400-bc893d6558f0" name="mongo-dch-update-particular-asset"/>
+        <flow-ref doc:name="Flow Reference" doc:id="9897d1b2-0ed1-4d19-9400-bc893d6558f0" name="mongo-dch-update-particular-asset" />
+    </flow>
+    <flow name="get:\expAsset:mongo-sapi-config">
+		<flow-ref doc:name="Flow Reference" doc:id="9c032364-b170-45bc-8bc4-c39cfeec30a9" name="findExpiredAssetsFlow"/>
     </flow>
 </mule>
