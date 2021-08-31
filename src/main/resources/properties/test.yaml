@@ -1,0 +1,20 @@
+#Listener configurations
+"http":
+   "host": "0.0.0.0"
+   "port": "8084"
+   "path": "/api/*"
+   "config": "mongo-sapi-2-httpListenerConfig"
+   "timeout": "30000"
+#Api details
+"application":
+  "name":  "mongo-dch-sapi"
+  "version"     : "1"
+  "instanceName": "mongo-sapi"
+  "environment": "dev"
+  "status": "running"
+#Mongo db config
+"mongo":
+    "string": "mongodb+srv://shani_test:test@cluster0.mrlqt.mongodb.net/sitecore_dch?retryWrites=true&w=majority"
+    "collection": "searchresponse"
+    
+                            

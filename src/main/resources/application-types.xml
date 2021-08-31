@@ -4,4 +4,5 @@
   <types:enrichment select="#d1d0b45e-068d-4199-ac52-c66506eedae5"/>
   <types:enrichment select="#25bb5106-288a-4bf7-b0db-473eced22dad"/>
   <types:enrichment select="#bbdac92b-2093-461d-92ea-4af787dda7a1"/>
+  <types:enrichment select="#9dfd80d0-18af-4623-98af-7ee890aa6bc7"/>
 </types:mule>

@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">
-    <http:listener-config name="mongo-sapi-httpListenerConfig">
-        <http:listener-connection host="0.0.0.0" port="8081" />
-    </http:listener-config>
-    <apikit:config name="mongo-sapi-config" api="resource::600a1e2b-9eca-403f-b97d-1178aa13d11a:mongo-sapi:1.0.5:raml:zip:mongo-sapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
-    <flow name="mongo-sapi-main">
-        <http:listener config-ref="mongo-sapi-httpListenerConfig" path="/api/*">
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">
+    <flow name="mongo-sapi-2-main">
+        <http:listener path="${http.path}" config-ref="mongo-sapi-2-httpListenerConfig">
             <http:response statusCode="#[vars.httpStatus default 200]">
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:response>
             <http:error-response statusCode="#[vars.httpStatus default 500]">
-                <http:body>#[payload]</http:body>
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:error-response>
         </http:listener>
-        <apikit:router config-ref="mongo-sapi-config" />
+        <apikit:router config-ref="mongo-sapi-2-config"/>
         <error-handler>
             <on-error-propagate type="APIKIT:BAD_REQUEST">
                 <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
@@ -96,17 +92,17 @@ output application/json
             </on-error-propagate>
         </error-handler>
     </flow>
-    <flow name="mongo-sapi-console">
-        <http:listener config-ref="mongo-sapi-httpListenerConfig" path="/console/*">
+    <flow name="mongo-sapi-2-console">
+        <http:listener path="/console/*" config-ref="mongo-sapi-2-httpListenerConfig">
             <http:response statusCode="#[vars.httpStatus default 200]">
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:response>
             <http:error-response statusCode="#[vars.httpStatus default 500]">
-                <http:body>#[payload]</http:body>
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:error-response>
         </http:listener>
-        <apikit:console config-ref="mongo-sapi-config" />
+        <apikit:console config-ref="mongo-sapi-2-config"/>
         <error-handler>
             <on-error-propagate type="APIKIT:NOT_FOUND">
                 <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
@@ -123,22 +119,22 @@ output application/json
             </on-error-propagate>
         </error-handler>
     </flow>
-    <flow name="delete:\mAssets\(mAssetId):mongo-sapi-config">
-        <flow-ref doc:name="Flow Reference" doc:id="84256e32-9c20-43e3-8bdc-8cdce1ec8e19" name="mongo-dch-delete-particular-asset" />
+	<flow name="delete:\mAssets\(mAssetId):mongo-sapi-2-config">
+		<flow-ref doc:name="Flow Reference" doc:id="8068af78-8129-4ead-9f00-dbd9e3deb675" name="mongo-dch-delete-particular-asset"/>
     </flow>
-    <flow name="get:\health:mongo-sapi-config">
-        <flow-ref doc:name="Flow Reference" doc:id="ef2658a4-4573-4417-afc1-5ef10cc602a1" name="mongo-dch-health" />
+    <flow name="patch:\mAssets\(mAssetId):application\json:mongo-sapi-2-config">
+		<flow-ref doc:name="Flow Reference" doc:id="37c3c037-db5d-46c6-9846-e0be9a4ee9f0" name="mongo-dch-update-particular-asset"/>
     </flow>
-    <flow name="get:\mAssets\(mAssetId):mongo-sapi-config">
-        <flow-ref doc:name="Flow Reference" doc:id="1f44bc22-ba47-4101-81e2-d13c455b82d0" name="mongo-dch-get-particular-asset" />
+    <flow name="get:\expAsset:mongo-sapi-2-config">
+		<flow-ref doc:name="Flow Reference" doc:id="a22f7916-22a5-444b-a3f8-aec781977d99" name="findExpiredAssetsFlow"/>
     </flow>
-    <flow name="post:\mAssets:application\json:mongo-sapi-config">
-        <flow-ref doc:name="Flow Reference" doc:id="7c5908fc-843f-47d4-a7a8-cc3423426e7f" name="mongo-dch-postNew" />
+    <flow name="get:\health:mongo-sapi-2-config">
+		<flow-ref doc:name="Flow Reference" doc:id="ae0f0fe0-a2bd-4ac8-8774-5a5cc44fb79e" name="healthFlow"/>
     </flow>
-    <flow name="patch:\mAssets\(mAssetId):application\json:mongo-sapi-config">
-        <flow-ref doc:name="Flow Reference" doc:id="9897d1b2-0ed1-4d19-9400-bc893d6558f0" name="mongo-dch-update-particular-asset" />
+    <flow name="get:\mAssets\(mAssetId):mongo-sapi-2-config">
+		<flow-ref doc:name="Flow Reference" doc:id="8e50abd1-7956-45b8-bfc2-b92243eba511" name="mongo-dch-get-particular-asset"/>
     </flow>
-    <flow name="get:\expAsset:mongo-sapi-config">
-		<flow-ref doc:name="Flow Reference" doc:id="9c032364-b170-45bc-8bc4-c39cfeec30a9" name="findExpiredAssetsFlow"/>
+    <flow name="post:\mAssets:application\json:mongo-sapi-2-config">
+		<flow-ref doc:name="Flow Reference" doc:id="0e783334-5a3e-4114-ae9a-2100d892b43d" name="mongo-dch-postNew"/>
     </flow>
 </mule>
